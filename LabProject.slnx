@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="LabProject.Domain/LabProject.Domain.csproj" />
+  <Project Path="LabProject.Application/LabProject.Application.csproj" />
+  <Project Path="LabProject.Infrastructure/LabProject.Infrastructure.csproj" />
+  <Project Path="LabProject.Api/LabProject.Api.csproj" />
+  <Project Path="LabProject.Worker/LabProject.Worker.csproj" />
+</Solution>

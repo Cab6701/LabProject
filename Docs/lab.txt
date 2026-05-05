@@ -1,0 +1,180 @@
+LAB: XÂY DỰNG HỆ THỐNG NOTIFICATION SERVICE PHÂN TÁN
+
+1. MỤC TIÊU
+   Xây dựng một hệ thống Notification Service có khả năng:
+
+* Gửi thông báo realtime và theo lịch
+* Hỗ trợ nhiều kênh (multi-channel)
+* Đảm bảo không mất message
+* Có khả năng mở rộng (scalable)
+* Cung cấp API thống kê
+
+---
+
+2. CÔNG NGHỆ BẮT BUỘC
+
+* Ngôn ngữ: C# (.NET 8 trở lên)
+* Message Broker: Kafka
+* NoSQL: MongoDB
+* Database thống kê: ClickHouse
+
+---
+
+3. YÊU CẦU CHỨC NĂNG
+
+3.1. Gửi thông báo realtime
+
+* Xây dựng API gửi thông báo ngay lập tức
+* Hỗ trợ:
+
+  * Gửi cho 1 user
+  * Gửi cho nhiều user
+* Cho phép chọn:
+  * 1 hoặc nhiều kênh gửi
+
+
+3.2. Gửi theo Campaign (Scheduler + Repeat)
+
+* Cho phép tạo chiến dịch gửi thông báo theo lịch
+* Lưu campaign vào MongoDB
+* Có các thuộc tính:
+
+  * scheduleTime (thời gian gửi)
+  * repeatType:
+    0: không lặp
+    1: hàng ngày
+    2: hàng tuần
+    3: hàng tháng
+* Cho phép bật/tắt campaign
+
+---
+
+3.3. Multi-channel Notification
+
+* Hệ thống phải hỗ trợ nhiều kênh gửi
+
+Bắt buộc triển khai tối thiểu:
+
+* Firebase (mock)
+* Email (mock)
+* InApp (lưu DB)
+
+Yêu cầu:
+
+* Áp dụng Strategy Pattern
+* Có khả năng mở rộng dễ dàng
+
+---
+
+3.4. Đảm bảo không mất message
+
+3.5. Retry & Dead Letter Queue
+
+* Retry tối thiểu 1 lần
+* Nếu vẫn fail:
+  -> đẩy vào topic: notification-dlq
+
+---
+
+3.6. Lưu lịch sử gửi (MongoDB)
+Lưu các thông tin:
+
+* messageId
+* userId
+* channel
+* status (success / fail)
+* error message
+* thời gian gửi
+
+---
+
+3.7. Thống kê (Analytics API)
+
+Sử dụng DB riêng (ClickHouse)
+
+Yêu cầu API:
+
+* GET /stats/by-driverCode
+* GET /stats/total
+* GET /stats/by-channel
+* GET /stats/success-rate
+
+---
+
+4. YÊU CẦU KỸ THUẬT
+
+4.1. Kiến trúc
+Hệ thống phải tách thành:
+
+* API Service (Producer)
+* Worker Service (Consumer)
+
+---
+
+4.2. Kafka Topics
+
+* notification-topic
+* notification-retry
+* notification-dlq
+
+---
+
+4.3. Performance
+
+* Xử lý tối thiểu 5,000 message/phút
+* Consumer chạy song song (multi-thread)
+
+---
+
+4.4. Idempotency (chống gửi trùng)
+
+* MessageId phải unique
+* Không được gửi trùng khi retry
+
+---
+
+4.5. Logging
+
+* Log đầy đủ:
+
+  * request
+  * message
+  * error
+
+6. YÊU CẦU ĐẦU RA
+
+* Source code rõ ràng, clean architecture
+* Có README hướng dẫn:
+
+  * Cách chạy project
+  * Cấu hình Kafka, Mongo, DB
+  * Test API
+
+---
+
+7. TEST HIỆU NĂNG
+
+Case 1: Gửi realtime
+
+* Gửi cho 1000 user
+* Verify nhận đủ
+
+Case 2: Campaign
+
+* Schedule sau 1 phút
+* Verify gửi đúng giờ
+
+Case 3: Retry
+
+* Force fail channel
+* Verify retry + DLQ
+
+Case 4: High load
+
+* Gửi 10,000 message
+* Verify không mất message
+
+---
+Môi trường:
+- Vì firebase hoặc môi trường khác cần key và token,... nên tạm thời giả lập (gọi 1 api ra ngoài hoặc gửi theo gmail)
+Sau khi test xong trên máy local thì có thể thay thế môi trường dev để test
