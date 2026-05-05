@@ -36,6 +36,56 @@
             "related": ".pdb;.xml"
           }
         }
+      },
+      "LabProject.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "LabProject.Domain": "1.0.0",
+          "Microsoft.AspNetCore.OpenApi": "10.0.7"
+        },
+        "compile": {
+          "bin/placeholder/LabProject.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/LabProject.Application.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
+      "LabProject.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Microsoft.AspNetCore.OpenApi": "10.0.7"
+        },
+        "compile": {
+          "bin/placeholder/LabProject.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/LabProject.Domain.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
+      "LabProject.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "LabProject.Application": "1.0.0",
+          "Microsoft.AspNetCore.OpenApi": "10.0.7"
+        },
+        "compile": {
+          "bin/placeholder/LabProject.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/LabProject.Infrastructure.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
       }
     }
   },
@@ -75,10 +125,26 @@
         "microsoft.openapi.2.0.0.nupkg.sha512",
         "microsoft.openapi.nuspec"
       ]
+    },
+    "LabProject.Application/1.0.0": {
+      "type": "project",
+      "path": "../LabProject.Application/LabProject.Application.csproj",
+      "msbuildProject": "../LabProject.Application/LabProject.Application.csproj"
+    },
+    "LabProject.Domain/1.0.0": {
+      "type": "project",
+      "path": "../LabProject.Domain/LabProject.Domain.csproj",
+      "msbuildProject": "../LabProject.Domain/LabProject.Domain.csproj"
+    },
+    "LabProject.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../LabProject.Infrastructure/LabProject.Infrastructure.csproj",
+      "msbuildProject": "../LabProject.Infrastructure/LabProject.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "LabProject.Infrastructure >= 1.0.0",
       "Microsoft.AspNetCore.OpenApi >= 10.0.7"
     ]
   },
@@ -89,11 +155,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Projects\\LabProject\\LabProject.Api\\LabProject.Api.csproj",
+      "projectUniqueName": "D:\\Projects\\LabProject\\labproject.api\\LabProject.Api.csproj",
       "projectName": "LabProject.Api",
-      "projectPath": "D:\\Projects\\LabProject\\LabProject.Api\\LabProject.Api.csproj",
+      "projectPath": "D:\\Projects\\LabProject\\labproject.api\\LabProject.Api.csproj",
       "packagesPath": "C:\\Users\\bacth\\.nuget\\packages\\",
-      "outputPath": "D:\\Projects\\LabProject\\LabProject.Api\\obj\\",
+      "outputPath": "D:\\Projects\\LabProject\\labproject.api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -116,7 +182,11 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "D:\\Projects\\LabProject\\LabProject.Infrastructure\\LabProject.Infrastructure.csproj": {
+              "projectPath": "D:\\Projects\\LabProject\\LabProject.Infrastructure\\LabProject.Infrastructure.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

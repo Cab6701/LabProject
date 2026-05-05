@@ -1,17 +1,11 @@
-var builder = WebApplication.CreateBuilder(args);
+using LabProject.Worker;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+var builder = Host.CreateDefaultBuilder(args);
+builder.ConfigureServices((context, services) =>
 {
-    app.MapOpenApi();
-}
+    services.AddHostedService<Worker>();
+});
 
-app.UseHttpsRedirection();
+var host = builder.Build();
 
-app.Run();
+host.Run();
