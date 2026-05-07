@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Confluent.Kafka;
 using LabProject.Application.DTOs;
+using LabProject.Application.Notifications.Channels;
 using LabProject.Worker.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -10,11 +11,16 @@ public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly KafkaOptions _kafkaOptions;
+    private readonly IReadOnlyDictionary<ChannelType, INotificationChannel> _channelsByType;
 
-    public Worker(ILogger<Worker> logger, IOptions<KafkaOptions> kafkaOptions)
+    public Worker(
+        ILogger<Worker> logger,
+        IOptions<KafkaOptions> kafkaOptions,
+        IEnumerable<INotificationChannel> channels)
     {
         _logger = logger;
         _kafkaOptions = kafkaOptions.Value;
+        _channelsByType = channels.ToDictionary(c => c.Type);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -53,11 +59,48 @@ public class Worker : BackgroundService
                     string.Join(",", notification.Channels),
                     notification.Attempt,
                     notification.Source);
+
+                foreach (var c in notification.Channels)
+                {
+                    var channelType = ParseChannelType(c);
+                    if (!_channelsByType.TryGetValue(channelType, out var channel))
+                    {
+                        _logger.LogWarning(
+                            "No channel strategy registered for type {ChannelType}. Skipped. messageId {MessageId}, userId {UserId}",
+                            channelType,
+                            notification.MessageId,
+                            notification.UserId);
+                        continue;
+                    }
+
+                    var result = await channel.SendAsync(notification, stoppingToken);
+                    if (!result.Success)
+                    {
+                        _logger.LogWarning(
+                            "Channel {ChannelType} send failed. messageId {MessageId}, userId {UserId}, error {ErrorMessage}",
+                            channelType,
+                            notification.MessageId,
+                            notification.UserId,
+                            result.ErrorMessage);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error consuming message");
             }
         }
+    }
+
+    private static ChannelType ParseChannelType(string channel)
+    {
+        return channel.Trim().ToLowerInvariant() switch
+        {
+            "email" => ChannelType.Email,
+            "firebase" => ChannelType.Firebase,
+            "inapp" => ChannelType.InApp,
+            "in_app" => ChannelType.InApp,
+            _ => throw new NotSupportedException($"Unknown channel '{channel}'")
+        };
     }
 }

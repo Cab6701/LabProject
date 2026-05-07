@@ -82,7 +82,7 @@ Lưu các thông tin:
 * messageId
 * userId
 * channel
-* status (success / fail)
+* status (success / failed)
 * error message
 * thời gian gửi
 
