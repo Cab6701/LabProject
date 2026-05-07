@@ -1,9 +1,10 @@
+using Confluent.Kafka;
+
 namespace LabProject.Worker;
 
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
-
     public Worker(ILogger<Worker> logger)
     {
         _logger = logger;
@@ -11,14 +12,31 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+
+        var consumerConfig = new ConsumerConfig
+        {
+            BootstrapServers = "localhost:9094",
+            GroupId = "notification-consumer-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest
+        };
+
+        using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+        consumer.Subscribe("notification-topic");
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
+            try
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            }
+                var consumeResult = consumer.Consume(2000);
+                if (consumeResult is null)
+                    continue;
 
-            await Task.Delay(1000, stoppingToken);
+                _logger.LogInformation("Consumed message: {Message}", consumeResult.Message.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consuming message");
+            }
         }
     }
 }

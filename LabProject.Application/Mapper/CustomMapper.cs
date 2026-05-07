@@ -22,7 +22,7 @@ public static class CustomMapper
         if (contract is not null || contracts is null)
         {
             var singleContract = new ContractDTO(
-                contract.UserId,
+                contract!.UserId,
                 contract.MessageId,
                 contract.Channels,
                 contract.Attempt,
