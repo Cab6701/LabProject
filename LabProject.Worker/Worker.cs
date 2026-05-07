@@ -1,13 +1,20 @@
+using System.Text.Json;
 using Confluent.Kafka;
+using LabProject.Application.DTOs;
+using LabProject.Worker.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace LabProject.Worker;
 
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
-    public Worker(ILogger<Worker> logger)
+    private readonly KafkaOptions _kafkaOptions;
+
+    public Worker(ILogger<Worker> logger, IOptions<KafkaOptions> kafkaOptions)
     {
         _logger = logger;
+        _kafkaOptions = kafkaOptions.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -15,13 +22,13 @@ public class Worker : BackgroundService
 
         var consumerConfig = new ConsumerConfig
         {
-            BootstrapServers = "localhost:9094",
+            BootstrapServers = _kafkaOptions.BootstrapServers,
             GroupId = "notification-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest
         };
 
         using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-        consumer.Subscribe("notification-topic");
+        consumer.Subscribe(_kafkaOptions.NotificationTopic);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -31,7 +38,21 @@ public class Worker : BackgroundService
                 if (consumeResult is null)
                     continue;
 
-                _logger.LogInformation("Consumed message: {Message}", consumeResult.Message.Value);
+                var message = JsonSerializer.Deserialize<ContractDTO?>(consumeResult.Message.Value);
+                if (!message.HasValue)
+                {
+                    _logger.LogWarning("Skipped malformed message at offset {Offset}", consumeResult.Offset.Value);
+                    continue;
+                }
+                var notification = message.Value;
+
+                _logger.LogInformation(
+                    "Consumed messageId {MessageId} for userId {UserId} channels {Channels} attempt {Attempt} source {Source}",
+                    notification.MessageId,
+                    notification.UserId,
+                    string.Join(",", notification.Channels),
+                    notification.Attempt,
+                    notification.Source);
             }
             catch (Exception ex)
             {
