@@ -30,6 +30,8 @@ public static class DependencyInjection
 
         var mongoOptions = configuration.GetSection(MongoOptions.SectionName).Get<MongoOptions>() ?? new MongoOptions();
         services.AddSingleton(mongoOptions);
+        var clickHouseOptions = configuration.GetSection(ClickHouseOptions.SectionName).Get<ClickHouseOptions>() ?? new ClickHouseOptions();
+        services.AddSingleton(clickHouseOptions);
 
         services.AddSingleton<IMongoClient>(new MongoClient(mongoOptions.ConnectionString));
 
@@ -38,9 +40,13 @@ public static class DependencyInjection
         services.AddScoped<INotificationPublisher, KafkaNotificationPublisher>();
 
         services.AddSingleton<MongoNotificationRepository>();
+        services.AddSingleton<ICampaignRepository, MongoCampaignRepository>();
 
         services.AddSingleton<MongoService>();
+        services.AddHttpClient<ClickHouseService>();
+        services.AddSingleton<IAnalyticsStore>(sp => sp.GetRequiredService<ClickHouseService>());
         services.AddHostedService<MongoIndexBootstrapHostedService>();
+        services.AddHostedService<ClickHouseBootstrapHostedService>();
         services.AddSingleton<INotificationChannel, InAppChannel>();
         services.AddSingleton<INotificationChannel, FirebaseChannel>();
         services.AddSingleton<INotificationChannel, EmailChannel>();

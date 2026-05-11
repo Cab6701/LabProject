@@ -28,6 +28,8 @@ public sealed class MongoIndexBootstrapHostedService : IHostedService
             {
                 await _mongoService.CreateIndexes(cancellationToken);
                 await _mongoService.CreateIndexesInApp(cancellationToken);
+                await _mongoService.CreateIndexesProcessedNotification(cancellationToken);
+                await _mongoService.CreateIndexesCampaign(cancellationToken);
                 _logger.LogInformation("MongoDB indexes ensured successfully");
                 return;
             }
