@@ -14,12 +14,17 @@ public class EmailChannel : INotificationChannel
         _logger = logger;
     }
 
-    public Task<NotificationSendResult> SendAsync(ContractDTO ctx, CancellationToken ct)
+    public async Task<NotificationSendResult> SendAsync(ContractDTO ctx, CancellationToken ct)
     {
-        _logger.LogInformation(
-            "Mock Email send: messageId {MessageId}, userId {UserId}",
-            ctx.MessageId,
-            ctx.UserId);
-        return Task.FromResult(new NotificationSendResult(Success: true, ErrorMessage: null));
+        await Task.Delay(10, ct);
+        if (ctx.Metadata.TryGetValue("forceFail", out var forceFail) &&
+            (string.Equals(forceFail, "all", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(forceFail, "email", StringComparison.OrdinalIgnoreCase)))
+        {
+            return new NotificationSendResult(false, "Forced email failure.");
+        }
+
+        _logger.LogInformation("Mock Email send: messageId {MessageId}, userId {UserId}", ctx.MessageId, ctx.UserId);
+        return new NotificationSendResult(true, null);
     }
 }

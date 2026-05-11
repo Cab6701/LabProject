@@ -1,4 +1,5 @@
 using LabProject.Application.DTOs;
+using LabProject.Domain.Entities;
 
 namespace LabProject.Application.Notifications.Channels;
 

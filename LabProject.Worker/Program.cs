@@ -1,6 +1,6 @@
 using LabProject.Worker;
 using LabProject.Infrastructure;
-using LabProject.Worker.Configuration;
+using LabProject.Infrastructure.Configuration;
 
 var builder = Host.CreateDefaultBuilder(args);
 builder.ConfigureServices((context, services) =>
